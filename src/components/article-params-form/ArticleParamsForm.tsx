@@ -1,9 +1,12 @@
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 import { Text } from 'src/ui/text';
+import { Select } from 'src/ui/select';
+import { RadioGroup } from 'src/ui/radio-group';
+import { Separator } from 'src/ui/separator';
 
 import styles from './ArticleParamsForm.module.scss';
-import { Select } from 'src/ui/select';
+
 import {
 	ArticleStateType,
 	OptionType,
@@ -14,10 +17,10 @@ import {
 	contentWidthArr,
 	defaultArticleState,
 } from 'src/constants/articleProps';
-import { useState } from 'react';
+
+import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
+import { useState, useRef } from 'react';
 import clsx from 'clsx';
-import { RadioGroup } from 'src/ui/radio-group';
-import { Separator } from 'src/ui/separator';
 
 type Props = {
 	articleState: ArticleStateType;
@@ -26,6 +29,15 @@ type Props = {
 
 export const ArticleParamsForm = ({ articleState, onApply }: Props) => {
 	const [draftState, setDraftState] = useState(articleState);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const rootRef = useRef<HTMLDivElement>(null);
+
+	useOutsideClickClose({
+		isOpen: isMenuOpen,
+		rootRef,
+		onChange: setIsMenuOpen,
+	});
 
 	const updateArticleState = (
 		key: keyof ArticleStateType,
@@ -34,13 +46,14 @@ export const ArticleParamsForm = ({ articleState, onApply }: Props) => {
 		setDraftState((prev) => ({ ...prev, [key]: value }));
 	};
 
-	const [isOpen, setIsOpen] = useState(false);
-
 	return (
-		<>
-			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
+		<div ref={rootRef}>
+			<ArrowButton
+				isOpen={isMenuOpen}
+				onClick={() => setIsMenuOpen((prev) => !prev)}
+			/>
 			<aside
-				className={clsx(styles.container, isOpen && styles.container_open)}>
+				className={clsx(styles.container, isMenuOpen && styles.container_open)}>
 				<form
 					className={styles.form}
 					onSubmit={(e) => {
@@ -60,43 +73,43 @@ export const ArticleParamsForm = ({ articleState, onApply }: Props) => {
 						title='Шрифт'
 						selected={draftState.fontFamilyOption}
 						options={fontFamilyOptions}
-						onChange={(value: OptionType) => {
-							updateArticleState('fontFamilyOption', value);
-						}}
+						onChange={(value: OptionType) =>
+							updateArticleState('fontFamilyOption', value)
+						}
 					/>
 					<RadioGroup
 						name='fontSize'
 						title='Размер шрифта'
 						selected={draftState.fontSizeOption}
 						options={fontSizeOptions}
-						onChange={(value: OptionType) => {
-							updateArticleState('fontSizeOption', value);
-						}}
+						onChange={(value: OptionType) =>
+							updateArticleState('fontSizeOption', value)
+						}
 					/>
 					<Select
 						title='Цвет шрифта'
 						selected={draftState.fontColor}
 						options={fontColors}
-						onChange={(value: OptionType) => {
-							updateArticleState('fontColor', value);
-						}}
+						onChange={(value: OptionType) =>
+							updateArticleState('fontColor', value)
+						}
 					/>
 					<Separator />
 					<Select
 						title='Цвет фона'
 						selected={draftState.backgroundColor}
 						options={backgroundColors}
-						onChange={(value: OptionType) => {
-							updateArticleState('backgroundColor', value);
-						}}
+						onChange={(value: OptionType) =>
+							updateArticleState('backgroundColor', value)
+						}
 					/>
 					<Select
 						title='Ширина контента'
 						selected={draftState.contentWidth}
 						options={contentWidthArr}
-						onChange={(value: OptionType) => {
-							updateArticleState('contentWidth', value);
-						}}
+						onChange={(value: OptionType) =>
+							updateArticleState('contentWidth', value)
+						}
 					/>
 					<div className={styles.bottomContainer}>
 						<Button
@@ -104,8 +117,8 @@ export const ArticleParamsForm = ({ articleState, onApply }: Props) => {
 							htmlType='reset'
 							type='clear'
 							onClick={() => {
-								onApply(defaultArticleState);
 								setDraftState(defaultArticleState);
+								onApply(defaultArticleState);
 							}}
 						/>
 						<Button
@@ -119,6 +132,6 @@ export const ArticleParamsForm = ({ articleState, onApply }: Props) => {
 					</div>
 				</form>
 			</aside>
-		</>
+		</div>
 	);
 };
